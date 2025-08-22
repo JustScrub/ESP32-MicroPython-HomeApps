@@ -1,3 +1,4 @@
 ESP32_*.bin
+env.py
 .venv
 .vscode

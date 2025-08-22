@@ -1,14 +1,27 @@
 import socket
 
-def extract_host(url):
+def extract_url_parts(url):
+    host = url
+    port = None
+    path = "/"
+    
+    # Remove protocol prefix
     if url.startswith("http://"):
         url = url[7:]
     elif url.startswith("https://"):
         url = url[8:]
-    slash_index = url.find("/")
-    if slash_index != -1:
-        return url[:slash_index]
-    return url
+
+    # Find path start
+    index = url.find("/")
+    if index != -1:
+        host = url[:index]
+        path = url[index:]
+    # Find port if specified
+    index = host.find(":")
+    if index != -1:
+        port = int(host[index + 1:])
+        host = host[:index]
+    return host, port, path
 
 def http_get(host, port, use_ssl, path="/"):
     addr = socket.getaddrinfo(host, port)[0][-1]
@@ -29,9 +42,8 @@ def http_get(host, port, use_ssl, path="/"):
     return response
 
 def wget(url, port=None, o="-", use_ssl=True, content_only=True, t=1):
-    host = extract_host(url)
+    host, port, path = extract_url_parts(url)
     port = port if port else (443 if use_ssl else 80)
-    path = url[url.find(host) + len(host):] or "/"
 
     response = http_get(host, port, use_ssl, path)
     if content_only:
