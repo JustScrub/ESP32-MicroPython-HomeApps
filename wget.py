@@ -23,9 +23,11 @@ def extract_url_parts(url):
         host = host[:index]
     return host, port, path
 
-def http_get(host, port, use_ssl, path="/"):
+def http_get(host, port, use_ssl, path="/", timeout=0):
     addr = socket.getaddrinfo(host, port)[0][-1]
     s = socket.socket()
+    if timeout > 0:
+        s.settimeout(timeout)
     s.connect(addr)
     if use_ssl:
         import ssl
@@ -41,16 +43,28 @@ def http_get(host, port, use_ssl, path="/"):
     s.close()
     return response
 
-def wget(url, port=None, o="-", use_ssl=True, content_only=True, t=1):
+def wget(url, port=None, o="*", use_ssl=True, content_only=True, t=1, T=0):
     host, port, path = extract_url_parts(url)
     port = port if port else (443 if use_ssl else 80)
 
-    response = http_get(host, port, use_ssl, path)
+    while True:
+        try:
+            response = http_get(host, port, use_ssl, path, timeout=T)
+            break
+        except Exception as e:
+            print(f"Error: {e}")
+            t -= 1
+            if t == 0:
+                print("Failed to retrieve the URL after retries.")
+                return
+
     if content_only:
         header_end = response.find(b"\r\n\r\n") + 4
         response = response[header_end:]
     if o == "-":
         print(response.decode())
+    elif o == "*":
+        return response
     else:
         with open(o, "wb") as f:
             f.write(response)
