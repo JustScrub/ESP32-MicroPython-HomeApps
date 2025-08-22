@@ -43,7 +43,7 @@ def http_get(host, port, use_ssl, path="/", timeout=0):
     s.close()
     return response
 
-def wget(url, port=None, o="*", use_ssl=True, content_only=True, t=1, T=0):
+def wget(url, port=None, O="*", use_ssl=True, content_only=True, t=1, T=0):
     host, port, path = extract_url_parts(url)
     port = port if port else (443 if use_ssl else 80)
 
@@ -61,10 +61,10 @@ def wget(url, port=None, o="*", use_ssl=True, content_only=True, t=1, T=0):
     if content_only:
         header_end = response.find(b"\r\n\r\n") + 4
         response = response[header_end:]
-    if o == "-":
+    if O == "-":
         print(response.decode())
-    elif o == "*":
+    elif O == "*":
         return response
     else:
-        with open(o, "wb") as f:
+        with open(O, "wb") as f:
             f.write(response)
